@@ -1,0 +1,2791 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barney Shooter - Ultimate Edition</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial Black', sans-serif;
+            overflow: hidden;
+            background: #000;
+        }
+
+        #gameContainer {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        /* MENU PRINCIPAL */
+        #mainMenu {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        #characterPreview {
+            width: 300px;
+            height: 350px;
+            position: relative;
+            animation: menuFloat 3s ease-in-out infinite;
+            filter: drop-shadow(0 20px 40px rgba(0,0,0,0.5));
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        #characterPreview:hover {
+            transform: scale(1.1) !important;
+        }
+
+        @keyframes menuFloat {
+            0%, 100% { transform: translateY(0) rotate(-3deg); }
+            50% { transform: translateY(-30px) rotate(3deg); }
+        }
+
+        /* CHARACTER SELECTION */
+        #characterMenu {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            display: none;
+            flex-direction: column;
+            position: relative;
+            overflow-y: auto;
+        }
+
+        .character-menu-title {
+            font-size: 64px;
+            color: white;
+            text-align: center;
+            margin: 40px 0 20px 0;
+            text-shadow: 4px 4px 8px rgba(0,0,0,0.5);
+        }
+
+        #characterGrid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 25px;
+            padding: 30px 50px 50px 50px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .character-card {
+            background: linear-gradient(145deg, #fff, #f0f0f0);
+            border-radius: 20px;
+            padding: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border: 4px solid transparent;
+            text-align: center;
+        }
+
+        .character-card:hover {
+            transform: translateY(-10px) scale(1.05);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+            border-color: #f39c12;
+        }
+
+        .character-card.selected {
+            border-color: #e74c3c;
+            background: linear-gradient(145deg, #ffe6e6, #ffd6d6);
+            animation: selectedPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes selectedPulse {
+            0%, 100% { box-shadow: 0 10px 30px rgba(231, 76, 60, 0.5); }
+            50% { box-shadow: 0 15px 50px rgba(231, 76, 60, 0.8); }
+        }
+
+        .character-card canvas {
+            width: 140px;
+            height: 140px;
+            margin: 0 auto;
+        }
+
+        .character-name {
+            font-size: 22px;
+            font-weight: bold;
+            margin-top: 12px;
+            color: #2c3e50;
+        }
+
+        #characterMenuBack {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            padding: 18px 38px;
+            font-size: 22px;
+            font-weight: bold;
+            background: linear-gradient(145deg, #e74c3c, #c0392b);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #922b21;
+            transition: all 0.1s;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            z-index: 10;
+        }
+
+        #characterMenuBack:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 0 #922b21;
+        }
+
+        #characterMenuBack:active {
+            transform: translateY(2px);
+            box-shadow: 0 3px 0 #922b21;
+        }
+
+        #playButton {
+            position: absolute;
+            bottom: 40px;
+            right: 40px;
+            padding: 25px 60px;
+            font-size: 32px;
+            font-weight: bold;
+            background: linear-gradient(145deg, #f39c12, #e67e22);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            box-shadow: 0 10px 0 #d68910, 0 15px 40px rgba(243, 156, 18, 0.5);
+            transition: all 0.1s;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        #playButton:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 0 #d68910, 0 20px 50px rgba(243, 156, 18, 0.6);
+        }
+
+        #playButton:active {
+            transform: translateY(5px);
+            box-shadow: 0 5px 0 #d68910, 0 10px 30px rgba(243, 156, 18, 0.4);
+        }
+
+        #difficultyButton {
+            position: absolute;
+            bottom: 120px;
+            right: 40px;
+            padding: 20px 45px;
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(145deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            box-shadow: 0 8px 0 #1f618d, 0 12px 35px rgba(52, 152, 219, 0.5);
+            transition: all 0.1s;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        #difficultyButton:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 13px 0 #1f618d, 0 17px 40px rgba(52, 152, 219, 0.6);
+        }
+
+        #difficultyButton:active {
+            transform: translateY(3px);
+            box-shadow: 0 5px 0 #1f618d, 0 9px 30px rgba(52, 152, 219, 0.4);
+        }
+
+        .difficulty-easy { background: linear-gradient(145deg, #2ecc71, #27ae60) !important; box-shadow: 0 8px 0 #1e8449, 0 12px 35px rgba(46, 204, 113, 0.5) !important; }
+        .difficulty-normal { background: linear-gradient(145deg, #3498db, #2980b9) !important; box-shadow: 0 8px 0 #1f618d, 0 12px 35px rgba(52, 152, 219, 0.5) !important; }
+        .difficulty-hard { background: linear-gradient(145deg, #e67e22, #d35400) !important; box-shadow: 0 8px 0 #ba4a00, 0 12px 35px rgba(230, 126, 34, 0.5) !important; }
+        .difficulty-ultrahard { background: linear-gradient(145deg, #e74c3c, #c0392b) !important; box-shadow: 0 8px 0 #922b21, 0 12px 35px rgba(231, 76, 60, 0.5) !important; }
+
+        #multiplayerButton {
+            position: absolute;
+            bottom: 40px;
+            right: 280px;
+            padding: 25px 50px;
+            font-size: 28px;
+            font-weight: bold;
+            background: linear-gradient(145deg, #e74c3c, #c0392b);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            box-shadow: 0 10px 0 #922b21, 0 15px 40px rgba(231, 76, 60, 0.5);
+            transition: all 0.1s;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        #multiplayerButton:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 0 #922b21, 0 20px 50px rgba(231, 76, 60, 0.6);
+        }
+
+        #multiplayerButton:active {
+            transform: translateY(5px);
+            box-shadow: 0 5px 0 #922b21, 0 10px 30px rgba(231, 76, 60, 0.4);
+        }
+
+        #shopButton {
+            position: absolute;
+            left: 50px;
+            top: 50%;
+            transform: translateY(-50%);
+            padding: 25px 50px;
+            font-size: 28px;
+            font-weight: bold;
+            background: linear-gradient(145deg, #27ae60, #229954);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            box-shadow: 0 8px 0 #1e8449, 0 12px 35px rgba(39, 174, 96, 0.5);
+            transition: all 0.1s;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        #shopButton:hover {
+            transform: translateY(calc(-50% - 5px));
+            box-shadow: 0 13px 0 #1e8449, 0 17px 40px rgba(39, 174, 96, 0.6);
+        }
+
+        #shopButton:active {
+            transform: translateY(calc(-50% + 3px));
+            box-shadow: 0 5px 0 #1e8449, 0 9px 30px rgba(39, 174, 96, 0.4);
+        }
+
+        #codesButton {
+            position: absolute;
+            left: 50px;
+            top: calc(50% + 100px);
+            padding: 20px 45px;
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(145deg, #9b59b6, #8e44ad);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            box-shadow: 0 8px 0 #6c3483, 0 12px 35px rgba(155, 89, 182, 0.5);
+            transition: all 0.1s;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        #codesButton:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 13px 0 #6c3483, 0 17px 40px rgba(155, 89, 182, 0.6);
+        }
+
+        #codesButton:active {
+            transform: translateY(3px);
+            box-shadow: 0 5px 0 #6c3483, 0 9px 30px rgba(155, 89, 182, 0.4);
+        }
+
+        #coinsDisplay {
+            position: absolute;
+            top: 40px;
+            right: 40px;
+            font-size: 36px;
+            font-weight: bold;
+            color: #f1c40f;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.7), 0 0 20px rgba(241, 196, 15, 0.5);
+            background: linear-gradient(145deg, rgba(0,0,0,0.6), rgba(0,0,0,0.4));
+            padding: 20px 40px;
+            border-radius: 15px;
+            border: 3px solid rgba(241, 196, 15, 0.5);
+        }
+
+        /* TIENDA */
+        #shop {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            display: none;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            position: relative;
+            overflow-y: auto;
+            padding: 120px 0 50px 0;
+        }
+
+        .shop-title {
+            font-size: 56px;
+            color: white;
+            margin-bottom: 30px;
+            text-shadow: 4px 4px 8px rgba(0,0,0,0.5);
+        }
+        
+        #weaponsList {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            padding-bottom: 50px;
+        }
+
+        .weapon-item {
+            background: linear-gradient(145deg, #fff, #f0f0f0);
+            padding: 30px 80px;
+            margin: 20px;
+            border-radius: 20px;
+            font-size: 32px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 8px 0 #bbb, 0 12px 35px rgba(0,0,0,0.4);
+            transition: all 0.1s;
+            min-width: 500px;
+            text-align: center;
+            border: 3px solid rgba(0,0,0,0.1);
+        }
+
+        .weapon-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 13px 0 #bbb, 0 17px 40px rgba(0,0,0,0.5);
+        }
+
+        .weapon-item:active {
+            transform: translateY(3px);
+            box-shadow: 0 5px 0 #bbb, 0 9px 30px rgba(0,0,0,0.3);
+        }
+
+        .weapon-item.owned {
+            background: linear-gradient(145deg, #3498db, #2980b9);
+            color: white;
+        }
+
+        .weapon-item.equipped {
+            background: linear-gradient(145deg, #e74c3c, #c0392b);
+            color: white;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 8px 0 #922b21, 0 12px 35px rgba(231, 76, 60, 0.6); }
+            50% { box-shadow: 0 8px 0 #922b21, 0 12px 50px rgba(231, 76, 60, 0.9); }
+        }
+
+        #backButton {
+            position: fixed;
+            top: 40px;
+            left: 40px;
+            padding: 20px 45px;
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(145deg, #e74c3c, #c0392b);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #922b21;
+            transition: all 0.1s;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            z-index: 100;
+        }
+
+        #backButton:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 9px 0 #922b21;
+        }
+
+        #backButton:active {
+            transform: translateY(2px);
+            box-shadow: 0 4px 0 #922b21;
+        }
+        
+        #coinsDisplay2 {
+            position: fixed !important;
+            top: 40px;
+            right: 40px;
+            z-index: 100;
+        }
+
+        /* CODES MENU */
+        #codesMenu {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .codes-title {
+            font-size: 64px;
+            color: white;
+            margin-bottom: 40px;
+            text-shadow: 4px 4px 8px rgba(0,0,0,0.5);
+        }
+
+        #codeInput {
+            width: 500px;
+            padding: 25px 35px;
+            font-size: 28px;
+            font-weight: bold;
+            text-align: center;
+            border: 4px solid rgba(255,255,255,0.3);
+            border-radius: 15px;
+            background: rgba(255,255,255,0.9);
+            margin-bottom: 30px;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        #codeInput:focus {
+            border-color: #f39c12;
+            box-shadow: 0 0 30px rgba(243, 156, 18, 0.5);
+            transform: scale(1.05);
+        }
+
+        #redeemButton {
+            padding: 25px 60px;
+            font-size: 32px;
+            font-weight: bold;
+            background: linear-gradient(145deg, #f39c12, #e67e22);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            box-shadow: 0 10px 0 #d68910, 0 15px 40px rgba(243, 156, 18, 0.5);
+            transition: all 0.1s;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        #redeemButton:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 0 #d68910, 0 20px 50px rgba(243, 156, 18, 0.6);
+        }
+
+        #redeemButton:active {
+            transform: translateY(5px);
+            box-shadow: 0 5px 0 #d68910, 0 10px 30px rgba(243, 156, 18, 0.4);
+        }
+
+        #codesBackButton {
+            position: absolute;
+            top: 40px;
+            left: 40px;
+            padding: 20px 45px;
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(145deg, #e74c3c, #c0392b);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #922b21;
+            transition: all 0.1s;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        #codesBackButton:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 9px 0 #922b21;
+        }
+
+        #codesBackButton:active {
+            transform: translateY(2px);
+            box-shadow: 0 4px 0 #922b21;
+        }
+
+        #codeMessage {
+            margin-top: 30px;
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            min-height: 40px;
+        }
+
+        /* JUEGO */
+        #gameScreen {
+            width: 100%;
+            height: 100%;
+            display: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #gameCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        #gameUI {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
+        }
+
+        .ui-stat {
+            background: linear-gradient(145deg, rgba(0,0,0,0.8), rgba(0,0,0,0.6));
+            color: white;
+            padding: 12px 25px;
+            border-radius: 12px;
+            font-size: 20px;
+            font-weight: bold;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+            border: 2px solid rgba(255,255,255,0.2);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        #healthBar {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            width: 250px;
+            height: 35px;
+            background: rgba(0,0,0,0.7);
+            border-radius: 10px;
+            border: 3px solid rgba(255,255,255,0.3);
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+        }
+
+        #healthFill {
+            height: 100%;
+            background: linear-gradient(90deg, #2ecc71, #27ae60);
+            transition: width 0.3s;
+            box-shadow: inset 0 0 20px rgba(255,255,255,0.3);
+        }
+
+        #healthText {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            pointer-events: none;
+        }
+
+        #gameOver {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(145deg, rgba(0,0,0,0.95), rgba(0,0,0,0.85));
+            color: white;
+            padding: 60px 80px;
+            border-radius: 30px;
+            text-align: center;
+            display: none;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+            border: 4px solid rgba(255,255,255,0.2);
+        }
+
+        #gameOver h2 {
+            font-size: 56px;
+            margin-bottom: 30px;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+            background: linear-gradient(145deg, #f39c12, #e67e22);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        #gameOver p {
+            font-size: 32px;
+            margin: 15px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        #returnButton {
+            margin-top: 40px;
+            padding: 20px 50px;
+            font-size: 28px;
+            font-weight: bold;
+            background: linear-gradient(145deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            pointer-events: all;
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.5);
+            transition: all 0.2s;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        #returnButton:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 9px 30px rgba(52, 152, 219, 0.7);
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <!-- MENU PRINCIPAL -->
+        <div id="mainMenu">
+            <canvas id="characterPreview" width="300" height="350"></canvas>
+            <button id="difficultyButton" class="difficulty-normal">⚙️ DIFICULTAD: NORMAL</button>
+            <button id="playButton">▶ JUGAR</button>
+            <button id="multiplayerButton">👥 2 JUGADORES</button>
+            <button id="shopButton">🛒 TIENDA</button>
+            <button id="codesButton">🎁 CODES</button>
+            <div id="coinsDisplay">💰 <span id="coins">0</span> COINS</div>
+        </div>
+
+        <!-- CHARACTER SELECTION -->
+        <div id="characterMenu">
+            <button id="characterMenuBack">← VOLVER</button>
+            <h1 class="character-menu-title">PERSONAJES</h1>
+            <div id="characterGrid"></div>
+        </div>
+
+        <!-- CODES MENU -->
+        <div id="codesMenu">
+            <button id="codesBackButton">← VOLVER</button>
+            <h1 class="codes-title">🎁 CÓDIGOS</h1>
+            <input type="text" id="codeInput" placeholder="Ingresa tu código aquí..." maxlength="50">
+            <button id="redeemButton">CANJEAR</button>
+            <div id="codeMessage"></div>
+        </div>
+
+        <!-- TIENDA -->
+        <div id="shop">
+            <button id="backButton">← VOLVER</button>
+            <div id="coinsDisplay2" class="ui-stat">💰 <span id="coins2">0</span> COINS</div>
+            <h1 class="shop-title">🛒 TIENDA DE ARMAS</h1>
+            <div id="weaponsList">
+                <div class="weapon-item equipped" data-weapon="pistol" data-cost="0">
+                    🔫 PISTOLA - GRATIS
+                </div>
+                <div class="weapon-item" data-weapon="shotgun" data-cost="10">
+                    💥 ESCOPETA - 10 MONEDAS
+                </div>
+                <div class="weapon-item" data-weapon="rifle" data-cost="15">
+                    🔥 METRALLADORA - 15 MONEDAS
+                </div>
+                <div class="weapon-item" data-weapon="sniper" data-cost="20">
+                    🎯 FRANCOTIRADOR - 20 MONEDAS
+                </div>
+                <div class="weapon-item" data-weapon="acid" data-cost="25">
+                    ☢️ PISTOLA ÁCIDA - 25 MONEDAS
+                </div>
+                <div class="weapon-item" data-weapon="gatling" data-cost="30">
+                    ⚡ GATLING - 30 MONEDAS
+                </div>
+                <div class="weapon-item" data-weapon="charger" data-cost="35">
+                    🔋 CARGADOR - 35 MONEDAS
+                </div>
+                <div class="weapon-item" data-weapon="poisonGatling" data-cost="40">
+                    🧪 GATLING VENENOSA - 40 MONEDAS
+                </div>
+                <div class="weapon-item" data-weapon="superShotgun" data-cost="45">
+                    💣 SUPER ESCOPETA - 45 MONEDAS
+                </div>
+            </div>
+        </div>
+
+        <!-- PANTALLA DE JUEGO -->
+        <div id="gameScreen">
+            <canvas id="gameCanvas"></canvas>
+            <div id="gameUI">
+                <div class="ui-stat">⏱️ <span id="timer">2:00</span></div>
+                <div class="ui-stat" id="player1Kills" style="background: linear-gradient(145deg, rgba(52, 152, 219, 0.9), rgba(41, 128, 185, 0.9));">
+                    🔵 P1: <span id="kills">0</span>
+                </div>
+                <div class="ui-stat" id="player2Kills" style="background: linear-gradient(145deg, rgba(231, 76, 60, 0.9), rgba(192, 57, 43, 0.9)); display: none;">
+                    🔴 P2: <span id="kills2">0</span>
+                </div>
+                <div class="ui-stat">🔫 <span id="currentWeapon">PISTOLA</span></div>
+            </div>
+            <div id="healthBar">
+                <div id="healthFill" style="width: 100%;"></div>
+                <div id="healthText">HP: 100</div>
+            </div>
+            <div id="healthBar2" style="display: none; bottom: 20px; left: 300px; position: absolute; width: 250px; height: 35px; background: rgba(0,0,0,0.7); border-radius: 10px; border: 3px solid rgba(255,100,100,0.5); overflow: hidden; box-shadow: 0 5px 20px rgba(0,0,0,0.5);">
+                <div id="healthFill2" style="height: 100%; width: 100%; background: linear-gradient(90deg, #e74c3c, #c0392b); transition: width 0.3s; box-shadow: inset 0 0 20px rgba(255,255,255,0.3);"></div>
+                <div id="healthText2" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 18px; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); pointer-events: none;">HP: 100</div>
+            </div>
+            <div id="gameOver">
+                <h2>¡PARTIDA TERMINADA!</h2>
+                <p id="finalKills">Kills: 0</p>
+                <p id="reward">+10 COINS</p>
+                <button id="returnButton">VOLVER AL MENU</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DATOS DEL JUEGO
+        let gameData = {
+            coins: 0,
+            ownedWeapons: ['pistol'],
+            equippedWeapon: 'pistol',
+            kills: 0,
+            selectedCharacter: 'barney',
+            selectedSkin: 'default',
+            ownedSkins: ['default'],
+            gameMode: 'single', // 'single' o 'multiplayer'
+            difficulty: 'normal' // 'easy', 'normal', 'hard', 'ultrahard'
+        };
+
+        // Configuración de armas enemigas según dificultad
+        const enemyWeaponsByDifficulty = {
+            easy: {
+                damage: 5,
+                fireRate: 2500, // Disparo cada 2.5 segundos
+                speed: 4,
+                color: '#95a5a6',
+                name: 'Pistola Débil'
+            },
+            normal: {
+                damage: 8,
+                fireRate: 1800,
+                speed: 5,
+                color: '#39FF14',
+                poison: true,
+                poisonDamage: 1,
+                poisonDuration: 1500,
+                name: 'Pistola Ácida'
+            },
+            hard: {
+                damage: 12,
+                fireRate: 1000,
+                speed: 7,
+                color: '#e74c3c',
+                pellets: 4,
+                name: 'Escopeta'
+            },
+            ultrahard: {
+                damage: 10,
+                fireRate: 200, // Gatling súper rápida
+                speed: 9,
+                color: '#FF4500',
+                poison: Math.random() < 0.5, // 50% chance de ser venenosa
+                poisonDamage: 2,
+                poisonDuration: 2000,
+                name: Math.random() < 0.5 ? 'Gatling' : 'Gatling Venenosa'
+            }
+        };
+
+        // Cargar datos guardados
+        function loadGameData() {
+            const saved = localStorage.getItem('barneyShooterSave');
+            if (saved) {
+                try {
+                    const data = JSON.parse(saved);
+                    gameData.coins = data.coins || 0;
+                    gameData.ownedWeapons = data.ownedWeapons || ['pistol'];
+                    gameData.equippedWeapon = data.equippedWeapon || 'pistol';
+                    gameData.selectedCharacter = data.selectedCharacter || 'barney';
+                    gameData.selectedSkin = data.selectedSkin || 'default';
+                    gameData.ownedSkins = data.ownedSkins || ['default'];
+                    gameData.difficulty = data.difficulty || 'normal';
+                    
+                    // Actualizar botón de dificultad
+                    const labels = {
+                        easy: 'FÁCIL',
+                        normal: 'NORMAL',
+                        hard: 'DIFÍCIL',
+                        ultrahard: 'ULTRA HARD'
+                    };
+                    difficultyButton.textContent = `⚙️ DIFICULTAD: ${labels[gameData.difficulty]}`;
+                    difficultyButton.className = `difficulty-${gameData.difficulty}`;
+                    
+                    console.log('Progreso cargado!');
+                } catch(e) {
+                    console.log('Error al cargar, iniciando nuevo juego');
+                }
+            }
+        }
+        
+        
+        // Guardar datos
+        function saveGameData() {
+            const saveData = {
+                coins: gameData.coins,
+                ownedWeapons: gameData.ownedWeapons,
+                equippedWeapon: gameData.equippedWeapon,
+                selectedCharacter: gameData.selectedCharacter,
+                selectedSkin: gameData.selectedSkin,
+                ownedSkins: gameData.ownedSkins,
+                difficulty: gameData.difficulty
+            };
+            localStorage.setItem('barneyShooterSave', JSON.stringify(saveData));
+            console.log('Progreso guardado!');
+        }
+
+        const characters = {
+            barney: { 
+                name: 'Barney', 
+                color: '#F4D03F',
+                skins: {
+                    default: { name: 'Clásico', cost: 0 },
+                    gold: { name: 'Dorado', cost: 50, color: '#FFD700' },
+                    zombie: { name: 'Zombie', cost: 40, color: '#7CFC00' }
+                }
+            },
+            gumball: { 
+                name: 'Gumball', 
+                color: '#87CEEB',
+                skins: {
+                    default: { name: 'Clásico', cost: 0 },
+                    dark: { name: 'Oscuro', cost: 35, color: '#4169E1' }
+                }
+            },
+            finn: { 
+                name: 'Finn', 
+                color: '#FFF',
+                skins: {
+                    default: { name: 'Clásico', cost: 0 },
+                    fire: { name: 'Fuego', cost: 45, color: '#FF4500' }
+                }
+            },
+            jake: { 
+                name: 'Jake', 
+                color: '#F4D03F',
+                skins: {
+                    default: { name: 'Clásico', cost: 0 },
+                    blue: { name: 'Azul', cost: 35, color: '#1E90FF' }
+                }
+            },
+            mordecai: { 
+                name: 'Mordecai', 
+                color: '#5B8CDB',
+                skins: {
+                    default: { name: 'Clásico', cost: 0 }
+                }
+            },
+            rigby: { 
+                name: 'Rigby', 
+                color: '#8B4513',
+                skins: {
+                    default: { name: 'Clásico', cost: 0 }
+                }
+            },
+            homer: { 
+                name: 'Homero', 
+                color: '#F4D03F',
+                skins: {
+                    default: { name: 'Clásico', cost: 0 },
+                    pink: { name: 'Rosa', cost: 40, color: '#FFB6C1' }
+                }
+            },
+            marge: { 
+                name: 'Marge', 
+                color: '#F4D03F',
+                skins: {
+                    default: { name: 'Clásico', cost: 0 },
+                    red: { name: 'Pelo Rojo', cost: 35, hairColor: '#DC143C' }
+                }
+            },
+            bart: { 
+                name: 'Bart', 
+                color: '#F4D03F',
+                skins: {
+                    default: { name: 'Clásico', cost: 0 },
+                    cool: { name: 'Cool', cost: 30, color: '#00CED1' }
+                }
+            },
+            lisa: { 
+                name: 'Lisa', 
+                color: '#F4D03F',
+                skins: {
+                    default: { name: 'Clásico', cost: 0 }
+                }
+            },
+            maggie: { 
+                name: 'Maggie', 
+                color: '#F4D03F',
+                skins: {
+                    default: { name: 'Clásico', cost: 0 },
+                    rainbow: { name: 'Arcoiris', cost: 25, color: '#FF69B4' }
+                }
+            }
+        };
+
+        const weapons = {
+            pistol: { name: 'PISTOLA', damage: 25, fireRate: 400, speed: 12, color: '#95a5a6' },
+            shotgun: { name: 'ESCOPETA', damage: 18, fireRate: 700, speed: 8, color: '#e74c3c', pellets: 6 },
+            rifle: { name: 'METRALLADORA', damage: 15, fireRate: 120, speed: 14, color: '#f39c12' },
+            sniper: { name: 'FRANCOTIRADOR', damage: 120, fireRate: 1500, speed: 20, color: '#2ecc71' },
+            acid: { name: 'PISTOLA ÁCIDA', damage: 15, fireRate: 500, speed: 10, color: '#39FF14', poison: true, poisonDamage: 3, poisonDuration: 3000 },
+            gatling: { name: 'GATLING', damage: 10, fireRate: 50, speed: 15, color: '#FF4500' },
+            charger: { name: 'CARGADOR', damage: 20, maxCharge: 150, chargeRate: 3, fireRate: 100, speed: 18, color: '#9400D3', isChargeWeapon: true, hasSplash: true },
+            poisonGatling: { name: 'GATLING VENENOSA', damage: 8, fireRate: 80, speed: 13, color: '#00FF7F', poison: true, poisonDamage: 2, poisonDuration: 2000 },
+            superShotgun: { name: 'SUPER ESCOPETA', damage: 22, fireRate: 350, speed: 9, color: '#FF1493', pellets: 7 }
+        };
+
+        // DOM ELEMENTS
+        const mainMenu = document.getElementById('mainMenu');
+        const characterMenu = document.getElementById('characterMenu');
+        const characterGrid = document.getElementById('characterGrid');
+        const characterMenuBack = document.getElementById('characterMenuBack');
+        const codesMenu = document.getElementById('codesMenu');
+        const codesButton = document.getElementById('codesButton');
+        const codesBackButton = document.getElementById('codesBackButton');
+        const codeInput = document.getElementById('codeInput');
+        const redeemButton = document.getElementById('redeemButton');
+        const codeMessage = document.getElementById('codeMessage');
+        const difficultyButton = document.getElementById('difficultyButton');
+        const shop = document.getElementById('shop');
+        const gameScreen = document.getElementById('gameScreen');
+        const playButton = document.getElementById('playButton');
+        const multiplayerButton = document.getElementById('multiplayerButton');
+        const shopButton = document.getElementById('shopButton');
+        const backButton = document.getElementById('backButton');
+        const coinsDisplay = document.getElementById('coins');
+        const coinsDisplay2 = document.getElementById('coins2');
+        const weaponsList = document.getElementById('weaponsList');
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const previewCanvas = document.getElementById('characterPreview');
+        const previewCtx = previewCanvas.getContext('2d');
+        const timerDisplay = document.getElementById('timer');
+        const killsDisplay = document.getElementById('kills');
+        const kills2Display = document.getElementById('kills2');
+        const player1KillsUI = document.getElementById('player1Kills');
+        const player2KillsUI = document.getElementById('player2Kills');
+        const currentWeaponDisplay = document.getElementById('currentWeapon');
+        const gameOver = document.getElementById('gameOver');
+        const finalKills = document.getElementById('finalKills');
+        const returnButton = document.getElementById('returnButton');
+        const healthFill = document.getElementById('healthFill');
+        const healthText = document.getElementById('healthText');
+        const healthBar2 = document.getElementById('healthBar2');
+        const healthFill2 = document.getElementById('healthFill2');
+        const healthText2 = document.getElementById('healthText2');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let particles = [];
+
+        // NAVIGATION
+        playButton.addEventListener('click', () => {
+            gameData.gameMode = 'single';
+            startGame();
+        });
+        
+        multiplayerButton.addEventListener('click', () => {
+            gameData.gameMode = 'multiplayer';
+            startGame();
+        });
+        
+        shopButton.addEventListener('click', () => {
+            mainMenu.style.display = 'none';
+            shop.style.display = 'flex';
+            updateShop();
+        });
+        backButton.addEventListener('click', () => {
+            shop.style.display = 'none';
+            mainMenu.style.display = 'flex';
+        });
+        returnButton.addEventListener('click', () => {
+            gameScreen.style.display = 'none';
+            mainMenu.style.display = 'flex';
+            gameOver.style.display = 'none';
+        });
+        
+        previewCanvas.addEventListener('click', () => {
+            mainMenu.style.display = 'none';
+            characterMenu.style.display = 'block';
+            setupCharacterMenu();
+        });
+        
+        characterMenuBack.addEventListener('click', () => {
+            characterMenu.style.display = 'none';
+            mainMenu.style.display = 'flex';
+        });
+
+        // CODES MENU
+        codesButton.addEventListener('click', () => {
+            mainMenu.style.display = 'none';
+            codesMenu.style.display = 'flex';
+            codeInput.value = '';
+            codeMessage.textContent = '';
+        });
+        
+        // DIFFICULTY SELECTOR
+        difficultyButton.addEventListener('click', () => {
+            const difficulties = ['easy', 'normal', 'hard', 'ultrahard'];
+            const currentIndex = difficulties.indexOf(gameData.difficulty);
+            const nextIndex = (currentIndex + 1) % difficulties.length;
+            gameData.difficulty = difficulties[nextIndex];
+            
+            // Actualizar texto y color del botón
+            const labels = {
+                easy: 'FÁCIL',
+                normal: 'NORMAL',
+                hard: 'DIFÍCIL',
+                ultrahard: 'ULTRA HARD'
+            };
+            
+            difficultyButton.textContent = `⚙️ DIFICULTAD: ${labels[gameData.difficulty]}`;
+            difficultyButton.className = `difficulty-${gameData.difficulty}`;
+            
+            saveGameData();
+        });
+        
+        codesBackButton.addEventListener('click', () => {
+            codesMenu.style.display = 'none';
+            mainMenu.style.display = 'flex';
+        });
+
+        // SISTEMA DE CÓDIGOS
+        const validCodes = {
+            'bonus700lautypele': {
+                reward: 700,
+                message: '¡CÓDIGO SECRETO ACTIVADO! 🎉',
+                used: false
+            }
+        };
+
+        redeemButton.addEventListener('click', () => {
+            const code = codeInput.value.trim().toLowerCase();
+            
+            if (!code) {
+                codeMessage.textContent = '⚠️ Ingresa un código primero';
+                codeMessage.style.color = '#e74c3c';
+                return;
+            }
+            
+            if (validCodes[code]) {
+                const usedCodes = JSON.parse(localStorage.getItem('usedCodes') || '[]');
+                
+                if (usedCodes.includes(code)) {
+                    codeMessage.textContent = '❌ Ya usaste este código';
+                    codeMessage.style.color = '#e74c3c';
+                } else {
+                    gameData.coins += validCodes[code].reward;
+                    updateCoins();
+                    saveGameData();
+                    
+                    usedCodes.push(code);
+                    localStorage.setItem('usedCodes', JSON.stringify(usedCodes));
+                    
+                    codeMessage.textContent = `${validCodes[code].message} +${validCodes[code].reward} MONEDAS 💰`;
+                    codeMessage.style.color = '#2ecc71';
+                    codeInput.value = '';
+                }
+            } else {
+                codeMessage.textContent = '❌ Código inválido';
+                codeMessage.style.color = '#e74c3c';
+            }
+        });
+
+        // Permitir Enter para canjear
+        codeInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                redeemButton.click();
+            }
+        });
+
+        // CHARACTER MENU SETUP
+        function setupCharacterMenu() {
+            characterGrid.innerHTML = '';
+            
+            Object.keys(characters).forEach(charId => {
+                const card = document.createElement('div');
+                card.className = 'character-card';
+                if (charId === gameData.selectedCharacter) {
+                    card.classList.add('selected');
+                }
+                
+                const charCanvas = document.createElement('canvas');
+                charCanvas.width = 140;
+                charCanvas.height = 140;
+                card.appendChild(charCanvas);
+                
+                const charName = document.createElement('div');
+                charName.className = 'character-name';
+                charName.textContent = characters[charId].name;
+                card.appendChild(charName);
+                
+                // Botón de skins
+                const skinBtn = document.createElement('button');
+                skinBtn.textContent = '🎨 Skins';
+                skinBtn.style.cssText = 'margin-top: 10px; padding: 8px 20px; font-size: 16px; font-weight: bold; background: #9b59b6; color: white; border: none; border-radius: 8px; cursor: pointer;';
+                skinBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    showSkinsMenu(charId);
+                };
+                card.appendChild(skinBtn);
+                
+                const charCtx = charCanvas.getContext('2d');
+                drawCharacter(charCtx, charId, 70, 70, 18, 0, false, 0);
+                
+                card.addEventListener('click', () => {
+                    gameData.selectedCharacter = charId;
+                    saveGameData();
+                    setupCharacterMenu();
+                });
+                
+                characterGrid.appendChild(card);
+            });
+        }
+
+        // Menú de skins
+        function showSkinsMenu(charId) {
+            const char = characters[charId];
+            const skins = char.skins;
+            
+            let html = `<h3 style="color: white; font-size: 32px; margin-bottom: 20px;">Skins de ${char.name}</h3>`;
+            
+            Object.keys(skins).forEach(skinId => {
+                const skin = skins[skinId];
+                const owned = gameData.ownedSkins.includes(`${charId}_${skinId}`);
+                const selected = gameData.selectedSkin === skinId && gameData.selectedCharacter === charId;
+                
+                let status = '';
+                if (selected) status = '✓ EQUIPADA';
+                else if (owned) status = 'Equipar';
+                else status = `Comprar (${skin.cost} coins)`;
+                
+                html += `<div style="background: ${selected ? '#e74c3c' : owned ? '#3498db' : '#fff'}; color: ${owned || selected ? 'white' : 'black'}; padding: 15px 30px; margin: 10px; border-radius: 10px; cursor: pointer; font-size: 20px; font-weight: bold;" onclick="handleSkinClick('${charId}', '${skinId}', ${skin.cost}, ${owned})">
+                    ${skin.name} - ${status}
+                </div>`;
+            });
+            
+            html += `<button style="margin-top: 20px; padding: 15px 35px; font-size: 20px; background: #e74c3c; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold;" onclick="closeSkinsMenu()">Cerrar</button>`;
+            
+            const modal = document.createElement('div');
+            modal.id = 'skinsModal';
+            modal.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: linear-gradient(145deg, rgba(0,0,0,0.95), rgba(52,152,219,0.9)); padding: 40px; border-radius: 20px; z-index: 1000; text-align: center; max-height: 80vh; overflow-y: auto;';
+            modal.innerHTML = html;
+            
+            const overlay = document.createElement('div');
+            overlay.id = 'skinsOverlay';
+            overlay.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 999;';
+            overlay.onclick = closeSkinsMenu;
+            
+            document.body.appendChild(overlay);
+            document.body.appendChild(modal);
+        }
+
+        window.handleSkinClick = function(charId, skinId, cost, owned) {
+            if (owned || skinId === 'default') {
+                gameData.selectedCharacter = charId;
+                gameData.selectedSkin = skinId;
+                if (skinId === 'default') {
+                    if (!gameData.ownedSkins.includes(`${charId}_default`)) {
+                        gameData.ownedSkins.push(`${charId}_default`);
+                    }
+                }
+                saveGameData();
+                closeSkinsMenu();
+                setupCharacterMenu();
+            } else {
+                if (gameData.coins >= cost) {
+                    gameData.coins -= cost;
+                    gameData.ownedSkins.push(`${charId}_${skinId}`);
+                    gameData.selectedCharacter = charId;
+                    gameData.selectedSkin = skinId;
+                    updateCoins();
+                    saveGameData();
+                    closeSkinsMenu();
+                    setupCharacterMenu();
+                } else {
+                    alert('¡No tienes suficientes monedas!');
+                }
+            }
+        };
+
+        window.closeSkinsMenu = function() {
+            const modal = document.getElementById('skinsModal');
+            const overlay = document.getElementById('skinsOverlay');
+            if (modal) modal.remove();
+            if (overlay) overlay.remove();
+        };
+
+        // SHOP
+        weaponsList.addEventListener('click', (e) => {
+            if (e.target.classList.contains('weapon-item')) {
+                const weaponType = e.target.dataset.weapon;
+                const cost = parseInt(e.target.dataset.cost);
+                
+                if (gameData.ownedWeapons.includes(weaponType)) {
+                    gameData.equippedWeapon = weaponType;
+                    saveGameData();
+                    updateShop();
+                } else if (gameData.coins >= cost) {
+                    gameData.coins -= cost;
+                    gameData.ownedWeapons.push(weaponType);
+                    gameData.equippedWeapon = weaponType;
+                    updateCoins();
+                    saveGameData();
+                    updateShop();
+                } else {
+                    alert('¡No tienes suficientes monedas!');
+                }
+            }
+        });
+
+        function updateShop() {
+            const items = weaponsList.querySelectorAll('.weapon-item');
+            items.forEach(item => {
+                const weaponType = item.dataset.weapon;
+                item.classList.remove('owned', 'equipped');
+                
+                if (gameData.equippedWeapon === weaponType) {
+                    item.classList.add('equipped');
+                    item.textContent = item.textContent.split(' - ')[0] + ' - EQUIPADA';
+                } else if (gameData.ownedWeapons.includes(weaponType)) {
+                    item.classList.add('owned');
+                    item.textContent = item.textContent.split(' - ')[0] + ' - COMPRADA';
+                }
+            });
+        }
+
+        function updateCoins() {
+            coinsDisplay.textContent = gameData.coins;
+            coinsDisplay2.textContent = gameData.coins;
+        }
+
+        // CHARACTER DRAWING FUNCTIONS
+        function drawCharacter(ctx, charId, x, y, size, angle, moving, walkCycle) {
+            switch(charId) {
+                case 'barney': drawBarney(ctx, x, y, size, angle, moving, walkCycle); break;
+                case 'gumball': drawGumball(ctx, x, y, size, angle, moving, walkCycle); break;
+                case 'finn': drawFinn(ctx, x, y, size, angle, moving, walkCycle); break;
+                case 'jake': drawJake(ctx, x, y, size, angle, moving, walkCycle); break;
+                case 'mordecai': drawMordecai(ctx, x, y, size, angle, moving, walkCycle); break;
+                case 'rigby': drawRigby(ctx, x, y, size, angle, moving, walkCycle); break;
+                case 'homer': drawHomer(ctx, x, y, size, angle, moving, walkCycle); break;
+                case 'marge': drawMarge(ctx, x, y, size, angle, moving, walkCycle); break;
+                case 'bart': drawBart(ctx, x, y, size, angle, moving, walkCycle); break;
+                case 'lisa': drawLisa(ctx, x, y, size, angle, moving, walkCycle); break;
+                case 'maggie': drawMaggie(ctx, x, y, size, angle, moving, walkCycle); break;
+            }
+        }
+
+        function drawBarney(ctx, x, y, size, angle, moving, walkCycle) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(angle);
+            
+            const scale = size / 40;
+            const bobOffset = moving ? Math.sin(walkCycle * 0.15) * 4 * scale : 0;
+            
+            // Sombra
+            ctx.fillStyle = 'rgba(0,0,0,0.3)';
+            ctx.beginPath();
+            ctx.ellipse(0, size * 2, size * 1.5, size * 0.5, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Piernas con animación
+            ctx.fillStyle = '#4169E1';
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2.5 * scale;
+            
+            const leftLegOffset = moving ? Math.sin(walkCycle * 0.15) * 10 * scale : 0;
+            const rightLegOffset = moving ? -Math.sin(walkCycle * 0.15) * 10 * scale : 0;
+            
+            ctx.beginPath();
+            ctx.roundRect(-size * 0.5, size * 0.8 + bobOffset + leftLegOffset, size * 0.6, size * 1.2, size * 0.2);
+            ctx.fill();
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.roundRect(size * 0.1, size * 0.8 + bobOffset + rightLegOffset, size * 0.6, size * 1.2, size * 0.2);
+            ctx.fill();
+            ctx.stroke();
+            
+            // Zapatos
+            ctx.fillStyle = '#2C3E50';
+            ctx.beginPath();
+            ctx.ellipse(-size * 0.2, size * 2 + bobOffset + leftLegOffset, size * 0.4, size * 0.25, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.ellipse(size * 0.4, size * 2 + bobOffset + rightLegOffset, size * 0.4, size * 0.25, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            // Cuerpo
+            ctx.fillStyle = '#FF8C69';
+            ctx.beginPath();
+            ctx.ellipse(0, bobOffset + size * 0.2, size * 1.2, size * 1.4, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            ctx.fillStyle = '#FF7455';
+            ctx.beginPath();
+            ctx.arc(0, bobOffset - size * 0.8, size * 0.6, 0, Math.PI);
+            ctx.fill();
+            ctx.stroke();
+            
+            // Brazos
+            ctx.fillStyle = '#F4D03F';
+            ctx.beginPath();
+            ctx.ellipse(-size * 1.3, bobOffset + size * 0.3, size * 0.4, size * 1.0, -0.3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.ellipse(size * 1.3, bobOffset + size * 0.3, size * 0.4, size * 1.0, 0.3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            // Cerveza
+            ctx.fillStyle = '#D4AF37';
+            ctx.beginPath();
+            ctx.roundRect(size * 1.5, bobOffset - size * 0.3, size * 0.7, size * 1.2, size * 0.15);
+            ctx.fill();
+            ctx.stroke();
+            
+            ctx.fillStyle = '#FFF';
+            ctx.beginPath();
+            ctx.arc(size * 1.85, bobOffset - size * 0.4, size * 0.45, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(size * 1.6, bobOffset - size * 0.5, size * 0.3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 3 * scale;
+            ctx.beginPath();
+            ctx.arc(size * 2.2, bobOffset + size * 0.3, size * 0.3, -Math.PI/2, Math.PI/2);
+            ctx.stroke();
+            
+            // Cabeza
+            ctx.fillStyle = '#F4D03F';
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2.5 * scale;
+            ctx.beginPath();
+            ctx.arc(0, bobOffset - size * 1.3, size * 1.3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            // PELO MEJORADO - Estilo Simpsons despeinado
+            ctx.fillStyle = '#8B4513';
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2.5 * scale;
+            ctx.beginPath();
+            // Línea superior del pelo
+            ctx.moveTo(-size * 0.9, bobOffset - size * 1.8);
+            ctx.quadraticCurveTo(-size * 1.2, bobOffset - size * 2.3, -size * 0.7, bobOffset - size * 2.1);
+            ctx.quadraticCurveTo(-size * 0.4, bobOffset - size * 2.5, -size * 0.1, bobOffset - size * 2.2);
+            ctx.quadraticCurveTo(size * 0.2, bobOffset - size * 2.6, size * 0.5, bobOffset - size * 2.2);
+            ctx.quadraticCurveTo(size * 0.8, bobOffset - size * 2.4, size * 1.0, bobOffset - size * 1.9);
+            // Conectar con la cabeza
+            ctx.arc(0, bobOffset - size * 1.3, size * 1.3, -0.4, Math.PI + 0.4, true);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            
+            // Mechones individuales encima
+            for(let i = 0; i < 5; i++) {
+                const mechonX = -size * 0.7 + i * size * 0.35;
+                const mechonY = bobOffset - size * 2.0 - Math.random() * size * 0.3;
+                ctx.beginPath();
+                ctx.arc(mechonX, mechonY, size * 0.25, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+            }
+            
+            // Ojos
+            ctx.fillStyle = '#FFF';
+            ctx.beginPath();
+            ctx.ellipse(-size * 0.45, bobOffset - size * 1.4, size * 0.45, size * 0.5, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.ellipse(size * 0.45, bobOffset - size * 1.4, size * 0.45, size * 0.5, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(-size * 0.45, bobOffset - size * 1.35, size * 0.2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(size * 0.45, bobOffset - size * 1.35, size * 0.2, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Nariz
+            ctx.fillStyle = '#F4D03F';
+            ctx.beginPath();
+            ctx.ellipse(size * 0.05, bobOffset - size * 1.0, size * 0.35, size * 0.25, 0.1, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            // Boca
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2.5 * scale;
+            ctx.beginPath();
+            ctx.arc(0, bobOffset - size * 0.75, size * 0.6, 0.1, Math.PI - 0.1);
+            ctx.stroke();
+            
+            // Barba
+            ctx.fillStyle = '#8B4513';
+            ctx.beginPath();
+            ctx.ellipse(0, bobOffset - size * 0.5, size * 0.7, size * 0.4, 0, 0, Math.PI);
+            ctx.fill();
+            ctx.stroke();
+            
+            // Arma
+            const weapon = weapons[gameData.equippedWeapon];
+            ctx.fillStyle = weapon.color;
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2 * scale;
+            ctx.beginPath();
+            ctx.roundRect(-size * 2.2, bobOffset - size * 0.2, size * 1.5, size * 0.4, size * 0.1);
+            ctx.fill();
+            ctx.stroke();
+            ctx.fillStyle = '#333';
+            ctx.fillRect(-size * 2.1, bobOffset - size * 0.1, size * 0.3, size * 0.2);
+            ctx.strokeRect(-size * 2.1, bobOffset - size * 0.1, size * 0.3, size * 0.2);
+            
+            ctx.restore();
+        }
+
+        // SIMPLIFIED CHARACTER DRAWING FUNCTIONS
+        function drawGumball(ctx, x, y, size, angle, moving, walkCycle) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(angle);
+            const bob = moving ? Math.sin(walkCycle * 0.15) * 3 : 0;
+            
+            // Cuerpo azul gato
+            ctx.fillStyle = '#87CEEB';
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(0, bob, size, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            // Orejas
+            ctx.beginPath();
+            ctx.moveTo(-size * 0.6, bob - size * 0.8);
+            ctx.lineTo(-size * 0.8, bob - size * 1.3);
+            ctx.lineTo(-size * 0.4, bob - size * 0.9);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(size * 0.6, bob - size * 0.8);
+            ctx.lineTo(size * 0.8, bob - size * 1.3);
+            ctx.lineTo(size * 0.4, bob - size * 0.9);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            
+            // Ojos grandes
+            ctx.fillStyle = '#FFF';
+            ctx.beginPath();
+            ctx.arc(-size * 0.3, bob - size * 0.2, size * 0.4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(size * 0.3, bob - size * 0.2, size * 0.4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(-size * 0.3, bob - size * 0.2, size * 0.15, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(size * 0.3, bob - size * 0.2, size * 0.15, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Sonrisa
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(0, bob + size * 0.1, size * 0.5, 0, Math.PI);
+            ctx.stroke();
+            
+            ctx.restore();
+        }
+
+        function drawFinn(ctx, x, y, size, angle, moving, walkCycle) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(angle);
+            const bob = moving ? Math.sin(walkCycle * 0.15) * 3 : 0;
+            
+            // Gorro blanco
+            ctx.fillStyle = '#FFF';
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(0, bob, size * 1.2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            // Orejas del gorro
+            ctx.beginPath();
+            ctx.moveTo(-size * 0.9, bob - size * 0.3);
+            ctx.lineTo(-size * 1.4, bob);
+            ctx.lineTo(-size * 0.9, bob + size * 0.3);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(size * 0.9, bob - size * 0.3);
+            ctx.lineTo(size * 1.4, bob);
+            ctx.lineTo(size * 0.9, bob + size * 0.3);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            
+            // Cara visible
+            ctx.fillStyle = '#FFD4A3';
+            ctx.beginPath();
+            ctx.arc(0, bob + size * 0.2, size * 0.7, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            // Ojos
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(-size * 0.25, bob + size * 0.1, size * 0.15, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(size * 0.25, bob + size * 0.1, size * 0.15, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Sonrisa
+            ctx.beginPath();
+            ctx.arc(0, bob + size * 0.3, size * 0.4, 0, Math.PI);
+            ctx.stroke();
+            
+            ctx.restore();
+        }
+
+        function drawJake(ctx, x, y, size, angle, moving, walkCycle) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(angle);
+            const bob = moving ? Math.sin(walkCycle * 0.15) * 3 : 0;
+            
+            // Cuerpo amarillo (perro)
+            ctx.fillStyle = '#F4D03F';
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.ellipse(0, bob, size * 1.3, size * 1.1, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            // Orejas caídas
+            ctx.beginPath();
+            ctx.ellipse(-size * 1.0, bob - size * 0.5, size * 0.4, size * 0.8, -0.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.ellipse(size * 1.0, bob - size * 0.5, size * 0.4, size * 0.8, 0.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            // Hocico
+            ctx.fillStyle = '#FADA5E';
+            ctx.beginPath();
+            ctx.ellipse(0, bob + size * 0.3, size * 0.6, size * 0.5, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            // Ojos
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(-size * 0.35, bob - size * 0.2, size * 0.2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(size * 0.35, bob - size * 0.2, size * 0.2, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Nariz y boca
+            ctx.beginPath();
+            ctx.arc(0, bob + size * 0.2, size * 0.15, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(0, bob + size * 0.2);
+            ctx.lineTo(0, bob + size * 0.5);
+            ctx.stroke();
+            
+            ctx.restore();
+        }
+
+        function drawMordecai(ctx, x, y, size, angle, moving, walkCycle) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(angle);
+            const bob = moving ? Math.sin(walkCycle * 0.15) * 3 : 0;
+            
+            // Cuerpo azul (pájaro)
+            ctx.fillStyle = '#5B8CDB';
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.ellipse(0, bob, size * 0.9, size * 1.3, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            // Cabeza
+            ctx.beginPath();
+            ctx.arc(0, bob - size * 1.0, size * 0.8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            // Pico
+            ctx.fillStyle = '#FF8800';
+            ctx.beginPath();
+            ctx.moveTo(-size * 0.2, bob - size * 0.9);
+            ctx.lineTo(0, bob - size * 0.7);
+            ctx.lineTo(size * 0.2, bob - size * 0.9);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            
+            // Ojos
+            ctx.fillStyle = '#FFF';
+            ctx.beginPath();
+            ctx.arc(-size * 0.3, bob - size * 1.2, size * 0.3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(size * 0.3, bob - size * 1.2, size * 0.3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(-size * 0.3, bob - size * 1.2, size * 0.12, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(size * 0.3, bob - size * 1.2, size * 0.12, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.restore();
+        }
+
+        function drawRigby(ctx, x, y, size, angle, moving, walkCycle) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(angle);
+            const bob = moving ? Math.sin(walkCycle * 0.15) * 3 : 0;
+            
+            // Cuerpo marrón (mapache)
+            ctx.fillStyle = '#8B4513';
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.ellipse(0, bob, size * 0.8, size * 1.2, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            // Panza blanca
+            ctx.fillStyle = '#F5DEB3';
+            ctx.beginPath();
+            ctx.ellipse(0, bob + size * 0.3, size * 0.5, size * 0.7, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            // Cabeza
+            ctx.fillStyle = '#8B4513';
+            ctx.beginPath();
+            ctx.arc(0, bob - size * 0.9, size * 0.7, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            // Máscara mapache
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.ellipse(-size * 0.4, bob - size * 0.9, size * 0.3, size * 0.25, -0.2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.ellipse(size * 0.4, bob - size * 0.9, size * 0.3, size * 0.25, 0.2, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Ojos blancos
+            ctx.fillStyle = '#FFF';
+            ctx.beginPath();
+            ctx.arc(-size * 0.3, bob - size * 0.9, size * 0.15, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(size * 0.3, bob - size * 0.9, size * 0.15, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(-size * 0.3, bob - size * 0.9, size * 0.08, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(size * 0.3, bob - size * 0.9, size * 0.08, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.restore();
+        }
+
+        function drawHomer(ctx, x, y, size, angle, moving, walkCycle) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(angle);
+            const bob = moving ? Math.sin(walkCycle * 0.15) * 3 : 0;
+            
+            // Cuerpo (camisa blanca, pantalones azules)
+            ctx.fillStyle = '#FFF';
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.ellipse(0, bob, size * 1.1, size * 1.3, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            ctx.fillStyle = '#4169E1';
+            ctx.beginPath();
+            ctx.ellipse(0, bob + size * 0.9, size * 0.9, size * 0.6, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            // Cabeza amarilla
+            ctx.fillStyle = '#F4D03F';
+            ctx.beginPath();
+            ctx.arc(0, bob - size * 1.0, size * 1.0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            // Pelos (2 en la parte superior)
+            ctx.fillStyle = '#8B4513';
+            ctx.beginPath();
+            ctx.arc(-size * 0.3, bob - size * 1.7, size * 0.2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(size * 0.3, bob - size * 1.7, size * 0.2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            // Ojos
+            ctx.fillStyle = '#FFF';
+            ctx.beginPath();
+            ctx.ellipse(-size * 0.35, bob - size * 1.1, size * 0.4, size * 0.45, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.ellipse(size * 0.35, bob - size * 1.1, size * 0.4, size * 0.45, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(-size * 0.35, bob - size * 1.0, size * 0.15, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(size * 0.35, bob - size * 1.0, size * 0.15, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Nariz
+            ctx.fillStyle = '#F4D03F';
+            ctx.beginPath();
+            ctx.ellipse(size * 0.05, bob - size * 0.7, size * 0.25, size * 0.2, 0.1, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            // Boca
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(0, bob - size * 0.5, size * 0.5, 0.1, Math.PI - 0.1);
+            ctx.stroke();
+            
+            ctx.restore();
+        }
+
+        function drawMarge(ctx, x, y, size, angle, moving, walkCycle) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(angle);
+            const bob = moving ? Math.sin(walkCycle * 0.15) * 3 : 0;
+            
+            // Vestido verde
+            ctx.fillStyle = '#2ECC71';
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.ellipse(0, bob + size * 0.3, size * 1.0, size * 1.3, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            // Cabeza amarilla
+            ctx.fillStyle = '#F4D03F';
+            ctx.beginPath();
+            ctx.arc(0, bob - size * 0.7, size * 0.8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            // PELO AZUL GIGANTE
+            ctx.fillStyle = '#3498DB';
+            ctx.beginPath();
+            ctx.ellipse(0, bob - size * 2.0, size * 0.9, size * 1.5, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            // Ojos
+            ctx.fillStyle = '#FFF';
+            ctx.beginPath();
+            ctx.ellipse(-size * 0.3, bob - size * 0.8, size * 0.3, size * 0.35, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.ellipse(size * 0.3, bob - size * 0.8, size * 0.3, size * 0.35, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(-size * 0.3, bob - size * 0.75, size * 0.12, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(size * 0.3, bob - size * 0.75, size * 0.12, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Collar de perlas
+            ctx.fillStyle = '#FFF';
+            for(let i = 0; i < 5; i++) {
+                ctx.beginPath();
+                ctx.arc(-size * 0.4 + i * size * 0.2, bob - size * 0.2, size * 0.08, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+            }
+            
+            ctx.restore();
+        }
+
+        function drawBart(ctx, x, y, size, angle, moving, walkCycle) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(angle);
+            const bob = moving ? Math.sin(walkCycle * 0.15) * 3 : 0;
+            
+            // Cuerpo (camisa naranja)
+            ctx.fillStyle = '#FF8C00';
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.ellipse(0, bob, size * 0.9, size * 1.1, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            // Pantalones azules
+            ctx.fillStyle = '#4169E1';
+            ctx.beginPath();
+            ctx.ellipse(0, bob + size * 0.8, size * 0.8, size * 0.5, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            // Cabeza
+            ctx.fillStyle = '#F4D03F';
+            ctx.beginPath();
+            ctx.arc(0, bob - size * 0.9, size * 0.8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            // Picos de pelo
+            for(let i = 0; i < 9; i++) {
+                ctx.beginPath();
+                ctx.moveTo(-size * 0.6 + i * size * 0.15, bob - size * 1.3);
+                ctx.lineTo(-size * 0.55 + i * size * 0.15, bob - size * 1.8);
+                ctx.lineTo(-size * 0.5 + i * size * 0.15, bob - size * 1.3);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+            }
+            
+            // Ojos
+            ctx.fillStyle = '#FFF';
+            ctx.beginPath();
+            ctx.ellipse(-size * 0.3, bob - size * 1.0, size * 0.35, size * 0.4, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.ellipse(size * 0.3, bob - size * 1.0, size * 0.35, size * 0.4, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(-size * 0.3, bob - size * 0.95, size * 0.15, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(size * 0.3, bob - size * 0.95, size * 0.15, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.restore();
+        }
+
+        function drawLisa(ctx, x, y, size, angle, moving, walkCycle) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(angle);
+            const bob = moving ? Math.sin(walkCycle * 0.15) * 3 : 0;
+            
+            // Vestido rojo
+            ctx.fillStyle = '#E74C3C';
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.ellipse(0, bob + size * 0.3, size * 0.9, size * 1.2, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            // Cabeza
+            ctx.fillStyle = '#F4D03F';
+            ctx.beginPath();
+            ctx.arc(0, bob - size * 0.8, size * 0.75, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            // Pelo de picos (como estrella)
+            for(let i = 0; i < 8; i++) {
+                const angle = (i / 8) * Math.PI * 2 - Math.PI/2;
+                ctx.beginPath();
+                ctx.moveTo(Math.cos(angle) * size * 0.6, bob - size * 0.8 + Math.sin(angle) * size * 0.6);
+                ctx.lineTo(Math.cos(angle) * size * 1.0, bob - size * 0.8 + Math.sin(angle) * size * 1.0);
+                ctx.lineTo(Math.cos(angle + 0.4) * size * 0.6, bob - size * 0.8 + Math.sin(angle + 0.4) * size * 0.6);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+            }
+            
+            // Ojos
+            ctx.fillStyle = '#FFF';
+            ctx.beginPath();
+            ctx.ellipse(-size * 0.28, bob - size * 0.9, size * 0.3, size * 0.35, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.ellipse(size * 0.28, bob - size * 0.9, size * 0.3, size * 0.35, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(-size * 0.28, bob - size * 0.85, size * 0.12, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(size * 0.28, bob - size * 0.85, size * 0.12, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Collar de perlas
+            ctx.fillStyle = '#FFF';
+            for(let i = 0; i < 4; i++) {
+                ctx.beginPath();
+                ctx.arc(-size * 0.3 + i * size * 0.2, bob - size * 0.3, size * 0.07, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+            }
+            
+            ctx.restore();
+        }
+
+        function drawMaggie(ctx, x, y, size, angle, moving, walkCycle) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(angle);
+            const bob = moving ? Math.sin(walkCycle * 0.15) * 3 : 0;
+            
+            // Cuerpo (mameluco celeste)
+            ctx.fillStyle = '#87CEEB';
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.ellipse(0, bob + size * 0.2, size * 0.7, size * 0.9, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            // Cabeza (más pequeña - es bebé)
+            ctx.fillStyle = '#F4D03F';
+            ctx.beginPath();
+            ctx.arc(0, bob - size * 0.6, size * 0.6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            // Un solo pelo en punta
+            ctx.beginPath();
+            ctx.moveTo(-size * 0.1, bob - size * 1.0);
+            ctx.lineTo(0, bob - size * 1.4);
+            ctx.lineTo(size * 0.1, bob - size * 1.0);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            
+            // CHUPETE
+            ctx.fillStyle = '#FF69B4';
+            ctx.beginPath();
+            ctx.arc(0, bob - size * 0.4, size * 0.3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            ctx.fillStyle = '#FFF';
+            ctx.beginPath();
+            ctx.arc(0, bob - size * 0.4, size * 0.15, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            // Ojos (cerrados - está feliz)
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(-size * 0.2, bob - size * 0.7, size * 0.15, 0, Math.PI);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(size * 0.2, bob - size * 0.7, size * 0.15, 0, Math.PI);
+            ctx.stroke();
+            
+            // Moño
+            ctx.fillStyle = '#FF1493';
+            ctx.beginPath();
+            ctx.ellipse(-size * 0.4, bob - size * 0.9, size * 0.2, size * 0.15, -0.3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.ellipse(size * 0.4, bob - size * 0.9, size * 0.2, size * 0.15, 0.3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            ctx.restore();
+        }
+
+        // Animar preview en menú
+        let menuAnimFrame = 0;
+        function animateMenuPreview() {
+            previewCtx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+            drawCharacter(previewCtx, gameData.selectedCharacter, 150, 175, 30, 0, true, menuAnimFrame);
+            menuAnimFrame += 1;
+            requestAnimationFrame(animateMenuPreview);
+        }
+        animateMenuPreview();
+
+        // ENEMY DRAWING
+        function drawEnemy(ctx, enemy) {
+            // Dibujar enemigo como personaje de dibujos animados
+            const moving = enemy.walkCycle % 20 > 10;
+            
+            // Efecto de veneno alrededor
+            if (enemy.poisoned) {
+                ctx.save();
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = '#39FF14';
+                
+                // Partículas de ácido
+                for(let i = 0; i < 3; i++) {
+                    const angle = (Date.now() * 0.005 + i * Math.PI * 2 / 3);
+                    const px = enemy.x + Math.cos(angle) * enemy.size * 1.5;
+                    const py = enemy.y + Math.sin(angle) * enemy.size * 1.5;
+                    ctx.fillStyle = '#39FF14';
+                    ctx.globalAlpha = 0.6;
+                    ctx.beginPath();
+                    ctx.arc(px, py, enemy.size * 0.2, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.globalAlpha = 1;
+                }
+                ctx.restore();
+            }
+            
+            // Dibujar el personaje del enemigo
+            drawCharacter(ctx, enemy.characterType, enemy.x, enemy.y, enemy.size * 0.8, enemy.angle, moving, enemy.walkCycle);
+            
+            // Barra de vida
+            const barWidth = enemy.size * 2.5;
+            const barHeight = 6;
+            const barY = enemy.y - enemy.size * 2.5;
+            
+            ctx.fillStyle = 'rgba(0,0,0,0.6)';
+            ctx.fillRect(enemy.x - barWidth/2, barY, barWidth, barHeight);
+            
+            const healthPercent = enemy.health / enemy.maxHealth;
+            const gradient = ctx.createLinearGradient(enemy.x - barWidth/2, 0, enemy.x + barWidth/2, 0);
+            if (healthPercent > 0.5) {
+                gradient.addColorStop(0, '#2ecc71');
+                gradient.addColorStop(1, '#27ae60');
+            } else if (healthPercent > 0.25) {
+                gradient.addColorStop(0, '#f39c12');
+                gradient.addColorStop(1, '#e67e22');
+            } else {
+                gradient.addColorStop(0, '#e74c3c');
+                gradient.addColorStop(1, '#c0392b');
+            }
+            ctx.fillStyle = gradient;
+            ctx.fillRect(enemy.x - barWidth/2, barY, barWidth * healthPercent, barHeight);
+            
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(enemy.x - barWidth/2, barY, barWidth, barHeight);
+            
+            // Indicador de veneno
+            if (enemy.poisoned) {
+                ctx.fillStyle = '#39FF14';
+                ctx.font = 'bold 14px Arial';
+                ctx.fillText('☢️', enemy.x - 7, enemy.y - enemy.size * 2.5 - 8);
+            }
+        }
+
+        function createParticles(x, y, color, count = 10) {
+            for (let i = 0; i < count; i++) {
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 8,
+                    vy: (Math.random() - 0.5) * 8,
+                    life: 1,
+                    color: color,
+                    size: Math.random() * 4 + 2
+                });
+            }
+        }
+
+        // GAME LOGIC
+        let player, player2, enemies, bullets, bullets2, enemyBullets, timeLeft, gameInterval, canShoot, canShoot2, walkCycle, walkCycle2;
+        let isCharging = false;
+        let chargeAmount = 0;
+        let chargeStartTime = 0;
+        const keys = {};
+
+        function startGame() {
+            mainMenu.style.display = 'none';
+            gameScreen.style.display = 'block';
+            gameOver.style.display = 'none';
+            
+            const isMultiplayer = gameData.gameMode === 'multiplayer';
+            
+            // Mostrar/ocultar UI de jugador 2
+            player2KillsUI.style.display = isMultiplayer ? 'block' : 'none';
+            healthBar2.style.display = isMultiplayer ? 'block' : 'none';
+            
+            gameData.kills = 0;
+            gameData.kills2 = 0;
+            timeLeft = 120;
+            canShoot = true;
+            canShoot2 = true;
+            walkCycle = 0;
+            walkCycle2 = 0;
+            
+            player = {
+                x: isMultiplayer ? canvas.width / 3 : canvas.width / 2,
+                y: canvas.height / 2,
+                size: 40,
+                speed: 6,
+                health: 100,
+                maxHealth: 100,
+                angle: 0
+            };
+            
+            if (isMultiplayer) {
+                player2 = {
+                    x: canvas.width * 2 / 3,
+                    y: canvas.height / 2,
+                    size: 40,
+                    speed: 6,
+                    health: 100,
+                    maxHealth: 100,
+                    angle: 0
+                };
+            } else {
+                player2 = null;
+            }
+            
+            enemies = [];
+            bullets = [];
+            bullets2 = [];
+            enemyBullets = [];
+            particles = [];
+            
+            for (let i = 0; i < 6; i++) {
+                spawnEnemy();
+            }
+            
+            updateUI();
+            gameLoop();
+            
+            gameInterval = setInterval(() => {
+                timeLeft--;
+                updateUI();
+                
+                const p1Dead = player.health <= 0;
+                const p2Dead = isMultiplayer && player2.health <= 0;
+                
+                if (timeLeft <= 0 || (isMultiplayer ? (p1Dead && p2Dead) : p1Dead)) {
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        function spawnEnemy() {
+            const side = Math.floor(Math.random() * 4);
+            let x, y;
+            
+            switch(side) {
+                case 0: x = Math.random() * canvas.width; y = -50; break;
+                case 1: x = canvas.width + 50; y = Math.random() * canvas.height; break;
+                case 2: x = Math.random() * canvas.width; y = canvas.height + 50; break;
+                case 3: x = -50; y = Math.random() * canvas.height; break;
+            }
+            
+            const colors = ['#e74c3c', '#9b59b6', '#e67e22', '#16a085', '#f39c12'];
+            
+            // Elegir personaje aleatorio para el enemigo
+            const characterTypes = ['finn', 'jake', 'marge', 'bart', 'gumball', 'mordecai', 'rigby', 'homer', 'lisa', 'maggie'];
+            const enemyCharacter = characterTypes[Math.floor(Math.random() * characterTypes.length)];
+            
+            // Obtener arma según dificultad
+            const enemyWeapon = enemyWeaponsByDifficulty[gameData.difficulty];
+            
+            // Para ultra hard, decidir si es venenosa o no
+            let weaponConfig = {...enemyWeapon};
+            if (gameData.difficulty === 'ultrahard') {
+                const isPoison = Math.random() < 0.5;
+                weaponConfig.poison = isPoison;
+                weaponConfig.color = isPoison ? '#00FF7F' : '#FF4500';
+            }
+            
+            enemies.push({
+                x: x,
+                y: y,
+                size: 30,
+                speed: 1.8 + Math.random() * 1.2,
+                health: 70,
+                maxHealth: 70,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                shootTimer: Math.random() * weaponConfig.fireRate,
+                angle: 0,
+                walkCycle: Math.random() * 100,
+                poisoned: false,
+                poisonTimer: 0,
+                poisonDamage: 0,
+                characterType: enemyCharacter,
+                weapon: weaponConfig
+            });
+        }
+
+        function gameLoop() {
+            if (timeLeft <= 0 || player.health <= 0) return;
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#87ceeb');
+            gradient.addColorStop(0.7, '#98d8c8');
+            gradient.addColorStop(1, '#7cb342');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            let moving = false;
+            if (keys['w'] || keys['ArrowUp']) {
+                player.y -= player.speed;
+                moving = true;
+            }
+            if (keys['s'] || keys['ArrowDown']) {
+                player.y += player.speed;
+                moving = true;
+            }
+            if (keys['a'] || keys['ArrowLeft']) {
+                player.x -= player.speed;
+                moving = true;
+            }
+            if (keys['d'] || keys['ArrowRight']) {
+                player.x += player.speed;
+                moving = true;
+            }
+            
+            if (moving) walkCycle += 1;
+            
+            player.x = Math.max(player.size * 2.5, Math.min(canvas.width - player.size * 2.5, player.x));
+            player.y = Math.max(player.size * 2.5, Math.min(canvas.height - player.size * 2.5, player.y));
+            
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.3;
+                p.life -= 0.02;
+                
+                if (p.life <= 0) {
+                    particles.splice(i, 1);
+                    continue;
+                }
+                
+                ctx.globalAlpha = p.life;
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            }
+            
+            for (let enemy of enemies) {
+                // Aplicar daño de veneno
+                if (enemy.poisoned) {
+                    enemy.poisonTimer -= 16;
+                    
+                    // Aplicar daño cada 500ms
+                    if (Math.floor(enemy.poisonTimer / 500) < Math.floor((enemy.poisonTimer + 16) / 500)) {
+                        enemy.health -= enemy.poisonDamage;
+                        createParticles(enemy.x, enemy.y, '#39FF14', 5);
+                        
+                        if (enemy.health <= 0) {
+                            const index = enemies.indexOf(enemy);
+                            if (index > -1) {
+                                enemies.splice(index, 1);
+                                gameData.kills++;
+                                updateUI();
+                                createParticles(enemy.x, enemy.y, '#39FF14', 40);
+                                spawnEnemy();
+                                continue;
+                            }
+                        }
+                    }
+                    
+                    if (enemy.poisonTimer <= 0) {
+                        enemy.poisoned = false;
+                    }
+                }
+                
+                let targetX, targetY;
+                
+                if (Math.random() < 0.6) {
+                    targetX = player.x;
+                    targetY = player.y;
+                } else {
+                    const otherEnemies = enemies.filter(e => e !== enemy);
+                    if (otherEnemies.length > 0) {
+                        const target = otherEnemies[Math.floor(Math.random() * otherEnemies.length)];
+                        targetX = target.x;
+                        targetY = target.y;
+                    } else {
+                        targetX = player.x;
+                        targetY = player.y;
+                    }
+                }
+                
+                const dx = targetX - enemy.x;
+                const dy = targetY - enemy.y;
+                const dist = Math.hypot(dx, dy);
+                
+                enemy.angle = Math.atan2(dy, dx);
+                
+                if (dist > 220) {
+                    enemy.x += (dx / dist) * enemy.speed;
+                    enemy.y += (dy / dist) * enemy.speed;
+                    enemy.walkCycle += 1;
+                }
+                
+                enemy.shootTimer -= 16;
+                if (enemy.shootTimer <= 0) {
+                    const weapon = enemy.weapon;
+                    enemy.shootTimer = weapon.fireRate + Math.random() * (weapon.fireRate * 0.5);
+                    
+                    const angle = Math.atan2(dy, dx);
+                    
+                    // Si tiene escopeta, disparar múltiples perdigones
+                    if (weapon.pellets) {
+                        for (let p = 0; p < weapon.pellets; p++) {
+                            const spread = (Math.random() - 0.5) * 0.4;
+                            enemyBullets.push({
+                                x: enemy.x,
+                                y: enemy.y,
+                                vx: Math.cos(angle + spread) * weapon.speed,
+                                vy: Math.sin(angle + spread) * weapon.speed,
+                                damage: weapon.damage,
+                                color: weapon.color,
+                                poison: weapon.poison || false,
+                                poisonDamage: weapon.poisonDamage || 0,
+                                poisonDuration: weapon.poisonDuration || 0,
+                                owner: enemy
+                            });
+                        }
+                    } else {
+                        enemyBullets.push({
+                            x: enemy.x,
+                            y: enemy.y,
+                            vx: Math.cos(angle) * weapon.speed,
+                            vy: Math.sin(angle) * weapon.speed,
+                            damage: weapon.damage,
+                            color: weapon.color,
+                            poison: weapon.poison || false,
+                            poisonDamage: weapon.poisonDamage || 0,
+                            poisonDuration: weapon.poisonDuration || 0,
+                            owner: enemy
+                        });
+                    }
+                }
+                
+                drawEnemy(ctx, enemy);
+            }
+            
+            drawCharacter(ctx, gameData.selectedCharacter, player.x, player.y, player.size, player.angle, moving, walkCycle);
+            
+            // Indicador de carga
+            if (isCharging) {
+                const weapon = weapons[gameData.equippedWeapon];
+                const chargeTime = (Date.now() - chargeStartTime) / 1000;
+                const currentCharge = Math.min(weapon.damage + (chargeTime * weapon.chargeRate * 10), weapon.maxCharge);
+                const chargePercent = currentCharge / weapon.maxCharge;
+                
+                // Barra de carga
+                const barWidth = 80;
+                const barHeight = 12;
+                const barX = player.x - barWidth / 2;
+                const barY = player.y - player.size * 3;
+                
+                ctx.fillStyle = 'rgba(0,0,0,0.7)';
+                ctx.fillRect(barX, barY, barWidth, barHeight);
+                
+                const gradient = ctx.createLinearGradient(barX, 0, barX + barWidth, 0);
+                gradient.addColorStop(0, '#9400D3');
+                gradient.addColorStop(0.5, '#FF00FF');
+                gradient.addColorStop(1, '#FF1493');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(barX, barY, barWidth * chargePercent, barHeight);
+                
+                ctx.strokeStyle = '#FFF';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(barX, barY, barWidth, barHeight);
+                
+                // Texto de daño
+                ctx.fillStyle = '#FFF';
+                ctx.font = 'bold 16px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(`${Math.floor(currentCharge)}`, player.x, barY - 5);
+            }
+            
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                const bullet = bullets[i];
+                bullet.x += bullet.vx;
+                bullet.y += bullet.vy;
+                
+                const bulletSize = bullet.size || 7;
+                
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = bullet.color;
+                ctx.fillStyle = bullet.color;
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(bullet.x, bullet.y, bulletSize, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+                
+                if (bullet.x < 0 || bullet.x > canvas.width || bullet.y < 0 || bullet.y > canvas.height) {
+                    bullets.splice(i, 1);
+                    continue;
+                }
+                
+                for (let j = enemies.length - 1; j >= 0; j--) {
+                    const enemy = enemies[j];
+                    const dist = Math.hypot(bullet.x - enemy.x, bullet.y - enemy.y);
+                    
+                    if (dist < enemy.size + bulletSize) {
+                        // Daño directo
+                        enemy.health -= bullet.damage;
+                        
+                        const impactX = bullet.x;
+                        const impactY = bullet.y;
+                        
+                        bullets.splice(i, 1);
+                        createParticles(enemy.x, enemy.y, enemy.color, Math.min(bullet.damage, 30));
+                        
+                        // DAÑO DE SALPICADURA (SPLASH) si el arma lo tiene
+                        if (bullet.hasSplash) {
+                            const splashRadius = Math.min(bullet.damage * 2, 200); // Radio basado en daño
+                            const splashDamage = bullet.damage * 0.5; // 50% del daño principal
+                            
+                            // Efecto visual de explosión
+                            ctx.save();
+                            ctx.globalAlpha = 0.6;
+                            const explosionGradient = ctx.createRadialGradient(impactX, impactY, 0, impactX, impactY, splashRadius);
+                            explosionGradient.addColorStop(0, bullet.color);
+                            explosionGradient.addColorStop(0.5, 'rgba(148, 0, 211, 0.4)');
+                            explosionGradient.addColorStop(1, 'rgba(148, 0, 211, 0)');
+                            ctx.fillStyle = explosionGradient;
+                            ctx.beginPath();
+                            ctx.arc(impactX, impactY, splashRadius, 0, Math.PI * 2);
+                            ctx.fill();
+                            ctx.restore();
+                            
+                            // Onda expansiva visual
+                            for (let k = 0; k < 20; k++) {
+                                const angle = (k / 20) * Math.PI * 2;
+                                const px = impactX + Math.cos(angle) * splashRadius;
+                                const py = impactY + Math.sin(angle) * splashRadius;
+                                createParticles(px, py, bullet.color, 3);
+                            }
+                            
+                            // Dañar enemigos en el radio
+                            for (let k = enemies.length - 1; k >= 0; k--) {
+                                if (k === j) continue; // Saltar el enemigo que ya recibió daño directo
+                                
+                                const otherEnemy = enemies[k];
+                                const splashDist = Math.hypot(impactX - otherEnemy.x, impactY - otherEnemy.y);
+                                
+                                if (splashDist < splashRadius) {
+                                    // Daño disminuye con la distancia
+                                    const damageMultiplier = 1 - (splashDist / splashRadius);
+                                    const finalSplashDamage = splashDamage * damageMultiplier;
+                                    
+                                    otherEnemy.health -= finalSplashDamage;
+                                    createParticles(otherEnemy.x, otherEnemy.y, bullet.color, 10);
+                                    
+                                    if (otherEnemy.health <= 0) {
+                                        enemies.splice(k, 1);
+                                        gameData.kills++;
+                                        updateUI();
+                                        createParticles(otherEnemy.x, otherEnemy.y, '#fff', 30);
+                                        spawnEnemy();
+                                        if (k < j) j--; // Ajustar índice si eliminamos un enemigo antes
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // Aplicar efecto de veneno si es pistola ácida
+                        if (bullet.poison) {
+                            enemy.poisoned = true;
+                            enemy.poisonTimer = bullet.poisonDuration;
+                            enemy.poisonDamage = bullet.poisonDamage;
+                            createParticles(enemy.x, enemy.y, '#39FF14', 20);
+                        }
+                        
+                        if (enemy.health <= 0) {
+                            enemies.splice(j, 1);
+                            gameData.kills++;
+                            updateUI();
+                            createParticles(enemy.x, enemy.y, '#fff', 30);
+                            spawnEnemy();
+                        }
+                        break;
+                    }
+                }
+            }
+            
+            for (let i = enemyBullets.length - 1; i >= 0; i--) {
+                const bullet = enemyBullets[i];
+                bullet.x += bullet.vx;
+                bullet.y += bullet.vy;
+                
+                const bulletColor = bullet.color || '#ff0000';
+                
+                ctx.shadowBlur = 8;
+                ctx.shadowColor = bulletColor;
+                ctx.fillStyle = bulletColor;
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(bullet.x, bullet.y, 6, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+                
+                if (bullet.x < 0 || bullet.x > canvas.width || bullet.y < 0 || bullet.y > canvas.height) {
+                    enemyBullets.splice(i, 1);
+                    continue;
+                }
+                
+                const distToPlayer = Math.hypot(bullet.x - player.x, bullet.y - player.y);
+                if (distToPlayer < player.size + 6) {
+                    const bulletDamage = bullet.damage || 10;
+                    player.health -= bulletDamage;
+                    enemyBullets.splice(i, 1);
+                    createParticles(player.x, player.y, bulletColor, 10);
+                    
+                    // Aplicar veneno al jugador si la bala es venenosa
+                    if (bullet.poison) {
+                        // TODO: Sistema de veneno para jugador
+                    }
+                    
+                    updateHealthBar();
+                    
+                    if (player.health <= 0) {
+                        endGame();
+                    }
+                    continue;
+                }
+                
+                for (let j = enemies.length - 1; j >= 0; j--) {
+                    const enemy = enemies[j];
+                    if (enemy === bullet.owner) continue;
+                    
+                    const dist = Math.hypot(bullet.x - enemy.x, bullet.y - enemy.y);
+                    
+                    if (dist < enemy.size + 6) {
+                        const bulletDamage = bullet.damage || 10;
+                        enemy.health -= bulletDamage;
+                        enemyBullets.splice(i, 1);
+                        createParticles(enemy.x, enemy.y, enemy.color, 8);
+                        
+                        // Aplicar veneno si la bala es venenosa
+                        if (bullet.poison) {
+                            enemy.poisoned = true;
+                            enemy.poisonTimer = bullet.poisonDuration;
+                            enemy.poisonDamage = bullet.poisonDamage;
+                            createParticles(enemy.x, enemy.y, '#39FF14', 15);
+                        }
+                        
+                        if (enemy.health <= 0) {
+                            enemies.splice(j, 1);
+                            createParticles(enemy.x, enemy.y, '#fff', 20);
+                            spawnEnemy();
+                        }
+                        break;
+                    }
+                }
+            }
+            
+            requestAnimationFrame(gameLoop);
+        }
+
+        function updateHealthBar() {
+            const healthPercent = Math.max(0, player.health / player.maxHealth * 100);
+            healthFill.style.width = healthPercent + '%';
+            healthText.textContent = `HP: ${Math.max(0, Math.floor(player.health))}`;
+            
+            if (healthPercent <= 25) {
+                healthFill.style.background = 'linear-gradient(90deg, #e74c3c, #c0392b)';
+            } else if (healthPercent <= 50) {
+                healthFill.style.background = 'linear-gradient(90deg, #f39c12, #e67e22)';
+            } else {
+                healthFill.style.background = 'linear-gradient(90deg, #2ecc71, #27ae60)';
+            }
+        }
+
+        function updateUI() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            timerDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            killsDisplay.textContent = gameData.kills;
+            if (gameData.gameMode === 'multiplayer' && kills2Display) {
+                kills2Display.textContent = gameData.kills2 || 0;
+            }
+            currentWeaponDisplay.textContent = weapons[gameData.equippedWeapon].name;
+        }
+
+        function endGame() {
+            clearInterval(gameInterval);
+            gameData.coins += 10;
+            updateCoins();
+            saveGameData();
+            
+            finalKills.textContent = `💀 Kills: ${gameData.kills}`;
+            gameOver.style.display = 'block';
+        }
+
+        window.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+        });
+
+        window.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+
+        canvas.addEventListener('mousedown', (e) => {
+            if (!canShoot || timeLeft <= 0 || player.health <= 0) return;
+            
+            const weapon = weapons[gameData.equippedWeapon];
+            
+            // Si es arma de carga, comenzar a cargar
+            if (weapon.isChargeWeapon) {
+                isCharging = true;
+                chargeAmount = weapon.damage;
+                chargeStartTime = Date.now();
+                return;
+            }
+            
+            // Disparo normal
+            shootWeapon(e);
+        });
+
+        canvas.addEventListener('mouseup', (e) => {
+            const weapon = weapons[gameData.equippedWeapon];
+            
+            // Si es arma de carga, disparar con la carga acumulada
+            if (weapon.isChargeWeapon && isCharging) {
+                isCharging = false;
+                const chargeTime = (Date.now() - chargeStartTime) / 1000; // segundos
+                chargeAmount = Math.min(weapon.damage + (chargeTime * weapon.chargeRate * 10), weapon.maxCharge);
+                shootWeapon(e, chargeAmount);
+                chargeAmount = weapon.damage;
+            }
+        });
+
+        function shootWeapon(e, customDamage = null) {
+            if (!canShoot || timeLeft <= 0 || player.health <= 0) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            
+            const weapon = weapons[gameData.equippedWeapon];
+            const angle = Math.atan2(mouseY - player.y, mouseX - player.x);
+            
+            player.angle = angle;
+            
+            const finalDamage = customDamage || weapon.damage;
+            
+            // Efecto visual más grande si es disparo cargado
+            const particleCount = customDamage ? Math.floor(customDamage / 10) : 5;
+            createParticles(player.x + Math.cos(angle) * 50, player.y + Math.sin(angle) * 50, weapon.color, particleCount);
+            
+            if (weapon.pellets) {
+                for (let i = 0; i < weapon.pellets; i++) {
+                    const spread = (Math.random() - 0.5) * 0.6;
+                    bullets.push({
+                        x: player.x,
+                        y: player.y,
+                        vx: Math.cos(angle + spread) * weapon.speed,
+                        vy: Math.sin(angle + spread) * weapon.speed,
+                        damage: finalDamage,
+                        color: weapon.color,
+                        poison: weapon.poison || false,
+                        poisonDamage: weapon.poisonDamage || 0,
+                        poisonDuration: weapon.poisonDuration || 0,
+                        hasSplash: weapon.hasSplash || false
+                    });
+                }
+            } else {
+                bullets.push({
+                    x: player.x,
+                    y: player.y,
+                    vx: Math.cos(angle) * weapon.speed,
+                    vy: Math.sin(angle) * weapon.speed,
+                    damage: finalDamage,
+                    color: weapon.color,
+                    poison: weapon.poison || false,
+                    poisonDamage: weapon.poisonDamage || 0,
+                    poisonDuration: weapon.poisonDuration || 0,
+                    size: customDamage ? Math.min(customDamage / 10, 15) : 7, // Bala más grande si está cargada
+                    hasSplash: weapon.hasSplash || false
+                });
+            }
+            
+            canShoot = false;
+            setTimeout(() => canShoot = true, weapon.fireRate);
+        }
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        // Cargar progreso guardado al iniciar
+        loadGameData();
+        updateCoins();
+    </script>
+</body>
+</html>
